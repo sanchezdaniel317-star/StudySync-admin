@@ -5,6 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* StudySync palette */
+  --color-ss-primary: #056CF2;
+  --color-ss-primary-dark: #0347B5;
+  --color-ss-light-blue: #3D9DF2;
+  --color-ss-steel: #B4C4D9;
+  --color-ss-background: #EBEFF2;
+  --color-ss-input-border: #D0D9E8;
+  --color-ss-text-dark: #1A1F2E;
+  --color-ss-text-muted: #6B7A99;
+  --color-ss-error: #E53935;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
