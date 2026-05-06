@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api, AdminUser } from "@/lib/api";
+import { api, ApiError, AdminUser } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export default function UsuariosPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [editUser, setEditUser] = useState<AdminUser | null>(null);
   const [editName, setEditName] = useState("");
   const [editCarrera, setEditCarrera] = useState("");
@@ -41,7 +42,14 @@ export default function UsuariosPage() {
     if (!token) { router.push("/login"); return; }
     api.getUsers(token)
       .then(setUsers)
-      .catch(() => { auth.removeToken(); router.push("/login"); })
+      .catch((err) => {
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          auth.removeToken();
+          router.push("/login");
+        } else {
+          setFetchError(err.message ?? "Error al conectar con el servidor");
+        }
+      })
       .finally(() => setLoading(false));
   }, [router, token]);
 
@@ -105,6 +113,8 @@ export default function UsuariosPage() {
         </div>
         {loading ? (
           <div className="p-8 text-center text-ss-text-muted">Cargando...</div>
+        ) : fetchError ? (
+          <div className="p-8 text-center text-sm text-ss-error bg-red-50">{fetchError}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

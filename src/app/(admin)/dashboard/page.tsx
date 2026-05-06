@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api, AdminUser } from "@/lib/api";
+import { api, ApiError, AdminUser } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 
@@ -19,13 +19,21 @@ export default function DashboardPage() {
   const router = useRouter();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const token = auth.getToken();
     if (!token) { router.push("/login"); return; }
     api.getUsers(token)
       .then(setUsers)
-      .catch(() => { auth.removeToken(); router.push("/login"); })
+      .catch((err) => {
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          auth.removeToken();
+          router.push("/login");
+        } else {
+          setError(err.message ?? "Error al conectar con el servidor");
+        }
+      })
       .finally(() => setLoading(false));
   }, [router]);
 
@@ -41,6 +49,8 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold text-ss-text-dark mb-6">Dashboard</h1>
       {loading ? (
         <p className="text-ss-text-muted">Cargando...</p>
+      ) : error ? (
+        <p className="text-sm text-ss-error bg-red-50 rounded-lg px-4 py-3">{error}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <StatCard label="Total de usuarios" value={users.length} color="text-ss-primary" />
