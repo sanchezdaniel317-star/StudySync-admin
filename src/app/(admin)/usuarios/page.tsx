@@ -12,13 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-const PAGE_SIZE = 20;
+import { formatDate } from "@/lib/utils";
 
-function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-}
+const PAGE_SIZE = 20;
 
 export default function UsuariosPage() {
   const router = useRouter();
