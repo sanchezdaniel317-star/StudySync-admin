@@ -16,6 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={geist.variable}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark');}})();`,
+          }}
+        />
+      </head>
       <body className="bg-ss-background min-h-screen">{children}</body>
     </html>
   );

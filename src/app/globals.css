@@ -95,6 +95,13 @@
 }
 
 .dark {
+  --color-ss-primary: #3D9DF2;
+  --color-ss-primary-dark: #56AAFF;
+  --color-ss-light-blue: #5BB4FF;
+  --color-ss-background: #0f1117;
+  --color-ss-input-border: #2a3045;
+  --color-ss-text-dark: #e8ecef;
+  --color-ss-text-muted: #8b96b0;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
