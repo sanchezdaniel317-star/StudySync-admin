@@ -13,6 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 import { formatDate } from "@/lib/utils";
+import { toast } from "sonner";
 
 const PAGE_SIZE = 20;
 
@@ -64,8 +65,9 @@ export default function UsuariosPage() {
     try {
       await api.updateUser(token, editUser.email, editName, editCarrera);
       setUsers((prev) => prev.map((u) => u.email === editUser.email ? { ...u, name: editName, carrera: editCarrera } : u));
+      toast.success("Usuario actualizado");
       setEditUser(null);
-    } catch (e) { alert(e instanceof Error ? e.message : "Error al guardar"); }
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Error al guardar"); }
     finally { setSaving(false); }
   };
 
@@ -75,8 +77,9 @@ export default function UsuariosPage() {
     setSending(true);
     try {
       await api.sendNotification(token, warnUser.email, warnMessage.trim());
+      toast.success("Advertencia enviada");
       setWarnUser(null);
-    } catch (e) { alert(e instanceof Error ? e.message : "Error al enviar"); }
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Error al enviar"); }
     finally { setSending(false); }
   };
 
@@ -85,7 +88,8 @@ export default function UsuariosPage() {
     try {
       const { is_blocked } = await api.toggleBlock(token, u.email);
       setUsers((prev) => prev.map((x) => x.email === u.email ? { ...x, is_blocked } : x));
-    } catch (e) { alert(e instanceof Error ? e.message : "Error al bloquear"); }
+      toast.success(is_blocked ? "Usuario bloqueado" : "Usuario desbloqueado");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Error al bloquear"); }
   };
 
   const handleDelete = async () => {
@@ -94,8 +98,9 @@ export default function UsuariosPage() {
     try {
       await api.deleteUser(token, deleteUser.email);
       setUsers((prev) => prev.filter((u) => u.email !== deleteUser.email));
+      toast.success("Usuario eliminado");
       setDeleteUser(null);
-    } catch (e) { alert(e instanceof Error ? e.message : "Error al eliminar"); }
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Error al eliminar"); }
     finally { setDeleting(false); }
   };
 

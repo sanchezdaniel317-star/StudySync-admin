@@ -10,6 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function ReportesPage() {
   const router = useRouter();
@@ -38,7 +39,8 @@ export default function ReportesPage() {
     try {
       await api.updateFeedbackStatus(token, id, "revisado");
       setItems((prev) => prev.map((item) => item.id === id ? { ...item, status: "revisado" } : item));
-    } catch (e) { alert(e instanceof Error ? e.message : "Error al actualizar"); }
+      toast.success("Reporte marcado como revisado");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Error al actualizar"); }
     finally { setUpdating(null); }
   };
 
