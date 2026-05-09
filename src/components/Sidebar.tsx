@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { useTheme } from "@/hooks/useTheme";
 
 const navItems = [
   {
@@ -40,6 +44,16 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { dark, toggle } = useTheme();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const token = auth.getToken();
+    if (!token) return;
+    api.getFeedback(token)
+      .then((items) => setPendingCount(items.filter((i) => i.status === "pendiente").length))
+      .catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     auth.removeToken();
@@ -47,7 +61,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-60 min-h-screen bg-white border-r border-ss-input-border flex flex-col">
+    <aside className="w-60 min-h-screen bg-white dark:bg-gray-900 border-r border-ss-input-border flex flex-col">
       <div className="px-6 py-5 border-b border-ss-input-border">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-ss-primary rounded-lg flex items-center justify-center">
@@ -67,22 +81,39 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
-            <Link key={item.href} href={item.href}
+            <Link
+              key={item.href}
+              href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 active
                   ? "bg-ss-primary/10 text-ss-primary"
                   : "text-ss-text-muted hover:bg-ss-background hover:text-ss-text-dark"
-              }`}>
+              }`}
+            >
               {item.icon}
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.href === "/reportes" && pendingCount > 0 && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-ss-error text-white text-[10px] font-bold">
+                  {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-ss-input-border">
-        <button onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ss-text-muted hover:bg-red-50 hover:text-ss-error transition-colors">
+      <div className="px-3 py-4 border-t border-ss-input-border space-y-1">
+        <button
+          onClick={toggle}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ss-text-muted hover:bg-ss-background hover:text-ss-text-dark transition-colors"
+        >
+          {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {dark ? "Modo claro" : "Modo oscuro"}
+        </button>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ss-text-muted hover:bg-red-50 hover:text-ss-error transition-colors"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
