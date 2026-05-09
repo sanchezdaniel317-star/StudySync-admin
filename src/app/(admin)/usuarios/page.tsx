@@ -36,6 +36,7 @@ export default function UsuariosPage() {
   const [sending, setSending] = useState(false);
   const [deleteUser, setDeleteUser] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmBlockUser, setConfirmBlockUser] = useState<AdminUser | null>(null);
   const token = auth.getToken();
 
   useEffect(() => {
@@ -156,7 +157,7 @@ export default function UsuariosPage() {
                               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
                         </button>
-                        <button title={u.is_blocked ? "Desbloquear" : "Bloquear"} onClick={() => handleBlock(u)}
+                        <button title={u.is_blocked ? "Desbloquear" : "Bloquear"} onClick={() => setConfirmBlockUser(u)}
                           className={`p-1.5 rounded-lg transition-colors ${u.is_blocked ? "hover:bg-green-50 text-green-600" : "hover:bg-red-50 text-ss-text-muted hover:text-ss-error"}`}>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {u.is_blocked ? (
@@ -223,6 +224,40 @@ export default function UsuariosPage() {
             <Button variant="outline" onClick={() => setWarnUser(null)}>Cancelar</Button>
             <Button onClick={handleWarn} disabled={sending || !warnMessage.trim()} className="bg-amber-500 hover:bg-amber-600 text-white">
               {sending ? "Enviando..." : "Enviar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!confirmBlockUser} onOpenChange={(o) => !o && setConfirmBlockUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmBlockUser?.is_blocked ? "¿Desbloquear usuario?" : "¿Bloquear usuario?"}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-ss-text-muted py-2">
+            {confirmBlockUser?.is_blocked ? (
+              <>El usuario <span className="font-medium text-ss-text-dark">{confirmBlockUser?.name}</span> podrá volver a iniciar sesión.</>
+            ) : (
+              <>El usuario <span className="font-medium text-ss-text-dark">{confirmBlockUser?.name}</span> no podrá iniciar sesión hasta que sea desbloqueado.</>
+            )}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmBlockUser(null)}>Cancelar</Button>
+            <Button
+              onClick={async () => {
+                if (confirmBlockUser) {
+                  await handleBlock(confirmBlockUser);
+                  setConfirmBlockUser(null);
+                }
+              }}
+              className={confirmBlockUser?.is_blocked
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-ss-error hover:bg-red-700 text-white"
+              }
+            >
+              {confirmBlockUser?.is_blocked ? "Desbloquear" : "Bloquear"}
             </Button>
           </DialogFooter>
         </DialogContent>
