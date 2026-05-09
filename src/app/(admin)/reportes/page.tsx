@@ -20,10 +20,15 @@ export default function ReportesPage() {
   const token = auth.getToken();
 
   useEffect(() => {
-    if (!token) { router.push("/login"); return; }
+    if (!token) return;
     api.getFeedback(token)
       .then(setItems)
-      .catch(() => { auth.removeToken(); router.push("/login"); })
+      .catch((err) => {
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          auth.removeToken();
+          router.push("/login");
+        }
+      })
       .finally(() => setLoading(false));
   }, [router, token]);
 

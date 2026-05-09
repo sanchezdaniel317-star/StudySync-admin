@@ -36,7 +36,7 @@ export default function UsuariosPage() {
   const token = auth.getToken();
 
   useEffect(() => {
-    if (!token) { router.push("/login"); return; }
+    if (!token) return;
     api.getUsers(token)
       .then(setUsers)
       .catch((err) => {

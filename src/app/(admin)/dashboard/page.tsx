@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = auth.getToken();
-    if (!token) { router.push("/login"); return; }
+    if (!token) return;
     Promise.all([
       api.getUsers(token),
       api.getFeedback(token),
