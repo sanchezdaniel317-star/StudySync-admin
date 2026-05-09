@@ -18,7 +18,17 @@ export default function ReportesPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<FeedbackItem | null>(null);
+  const [filterType, setFilterType] = useState<"all" | "bug" | "sugerencia">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pendiente" | "revisado">("all");
+  const [page, setPage] = useState(0);
   const token = auth.getToken();
+
+  const PAGE_SIZE = 20;
+  const filtered = items
+    .filter((i) => filterType === "all" || i.type === filterType)
+    .filter((i) => filterStatus === "all" || i.status === filterStatus);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageItems = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   useEffect(() => {
     if (!token) return;
@@ -49,6 +59,25 @@ export default function ReportesPage() {
     <div>
       <h1 className="text-2xl font-bold text-ss-text-dark mb-6">Reportes</h1>
       <div className="bg-white rounded-2xl border border-ss-input-border shadow-none overflow-hidden">
+        <div className="p-4 border-b border-ss-input-border flex flex-wrap items-center gap-3">
+          <div className="flex items-center rounded-lg border border-ss-input-border overflow-hidden text-sm">
+            {(["all", "bug", "sugerencia"] as const).map((v) => (
+              <button key={v} onClick={() => { setFilterType(v); setPage(0); }}
+                className={`px-3 py-1.5 transition-colors ${filterType === v ? "bg-ss-primary text-white" : "text-ss-text-muted hover:bg-ss-background"}`}>
+                {v === "all" ? "Todos" : v === "bug" ? "Bugs" : "Sugerencias"}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center rounded-lg border border-ss-input-border overflow-hidden text-sm">
+            {(["all", "pendiente", "revisado"] as const).map((v) => (
+              <button key={v} onClick={() => { setFilterStatus(v); setPage(0); }}
+                className={`px-3 py-1.5 transition-colors ${filterStatus === v ? "bg-ss-primary text-white" : "text-ss-text-muted hover:bg-ss-background"}`}>
+                {v === "all" ? "Todos" : v === "pendiente" ? "Pendientes" : "Revisados"}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-ss-text-muted ml-auto">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
+        </div>
         {loading ? (
           <div className="p-8 text-center text-ss-text-muted">Cargando...</div>
         ) : (
@@ -62,10 +91,10 @@ export default function ReportesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ss-input-border">
-                {items.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-ss-text-muted">Sin reportes</td></tr>
+                {pageItems.length === 0 && (
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-ss-text-muted">Sin resultados</td></tr>
                 )}
-                {items.map((item) => (
+                {pageItems.map((item) => (
                   <tr key={item.id} className="hover:bg-ss-background/50">
                     <td className="px-4 py-3 text-ss-text-muted">{item.user_email}</td>
                     <td className="px-4 py-3">
@@ -102,6 +131,15 @@ export default function ReportesPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {totalPages > 1 && (
+          <div className="px-4 py-3 border-t border-ss-input-border flex items-center justify-between text-sm text-ss-text-muted">
+            <span>{page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de {filtered.length}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Anterior</Button>
+              <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Siguiente</Button>
+            </div>
           </div>
         )}
       </div>
