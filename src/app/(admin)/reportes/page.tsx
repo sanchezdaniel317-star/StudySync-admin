@@ -6,6 +6,9 @@ import { api, FeedbackItem } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
@@ -18,6 +21,7 @@ export default function ReportesPage() {
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<FeedbackItem | null>(null);
   const token = auth.getToken();
 
   useEffect(() => {
@@ -39,6 +43,7 @@ export default function ReportesPage() {
   };
 
   return (
+    <>
     <div>
       <h1 className="text-2xl font-bold text-ss-text-dark mb-6">Reportes</h1>
       <div className="bg-white rounded-2xl border border-ss-input-border shadow-none overflow-hidden">
@@ -66,7 +71,15 @@ export default function ReportesPage() {
                         {item.type === "bug" ? "Bug" : "Sugerencia"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 font-medium text-ss-text-dark max-w-[180px] truncate">{item.title}</td>
+                    <td className="px-4 py-3 max-w-[180px]">
+                      <button
+                        onClick={() => setSelectedItem(item)}
+                        className="font-medium text-ss-primary hover:underline text-left truncate block w-full"
+                        title={item.title}
+                      >
+                        {item.title}
+                      </button>
+                    </td>
                     <td className="px-4 py-3 text-ss-text-muted max-w-[240px] truncate" title={item.description}>{item.description}</td>
                     <td className="px-4 py-3 text-ss-text-muted whitespace-nowrap">{formatDate(item.created_at)}</td>
                     <td className="px-4 py-3">
@@ -91,5 +104,26 @@ export default function ReportesPage() {
         )}
       </div>
     </div>
+      <Dialog open={!!selectedItem} onOpenChange={(o) => !o && setSelectedItem(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="pr-6">{selectedItem?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className={selectedItem?.type === "bug" ? "bg-red-100 text-ss-error border-0" : "bg-blue-100 text-ss-primary border-0"}>
+                {selectedItem?.type === "bug" ? "Bug" : "Sugerencia"}
+              </Badge>
+              <Badge className={selectedItem?.status === "revisado" ? "bg-green-100 text-green-700 border-0" : "bg-amber-100 text-amber-700 border-0"}>
+                {selectedItem?.status === "revisado" ? "Revisado" : "Pendiente"}
+              </Badge>
+              <span className="text-xs text-ss-text-muted ml-auto">{formatDate(selectedItem?.created_at ?? null)}</span>
+            </div>
+            <p className="text-xs text-ss-text-muted">{selectedItem?.user_email}</p>
+            <p className="text-sm text-ss-text-dark whitespace-pre-wrap leading-relaxed">{selectedItem?.description}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
