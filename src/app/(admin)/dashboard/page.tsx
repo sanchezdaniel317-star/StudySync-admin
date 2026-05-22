@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { api, ApiError, AdminUser, FeedbackItem } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
@@ -185,9 +184,17 @@ export default function DashboardPage() {
     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
   }).length;
 
+  const newThisWeek = users.filter((u) => {
+    if (!u.created_at) return false;
+    const d = new Date(u.created_at);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return d >= weekAgo;
+  }).length;
+
+  const pendingFeedbackCount = feedback.filter((f) => f.status === "pendiente").length;
+
   const monthlyData = getMonthlyRegistrations(users);
   const feedbackMonthlyData = getMonthlyFeedback(feedback);
-  const pendingReports = feedback.filter((f) => f.status === "pendiente").length;
 
   return (
     <div>
@@ -198,30 +205,18 @@ export default function DashboardPage() {
         <p className="text-sm text-ss-error bg-red-50 rounded-lg px-4 py-3">{error}</p>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <StatCard label="Total de usuarios" value={users.length} color="text-ss-primary" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <StatCard label="Total usuarios" value={users.length} color="text-ss-primary" />
             <StatCard label="Usuarios bloqueados" value={users.filter((u) => u.is_blocked).length} color="text-ss-error" />
             <StatCard label="Nuevos este mes" value={newThisMonth} color="text-green-600" />
+            <StatCard label="Nuevos esta semana" value={newThisWeek} color="text-blue-500" />
+            <StatCard label="Reportes pendientes" value={pendingFeedbackCount} color={pendingFeedbackCount > 0 ? "text-amber-500" : "text-green-600"} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <Card className="p-6 border border-ss-input-border shadow-none sm:col-span-2">
-              <p className="text-sm font-medium text-ss-text-muted mb-4">Registros por mes (últimos 6 meses)</p>
-              <MonthlyBarChart data={monthlyData} />
-            </Card>
-
-            <Link href="/reportes" className="block">
-              <Card className="p-6 border border-ss-input-border shadow-none h-full hover:border-ss-primary transition-colors cursor-pointer">
-                <p className="text-sm font-medium text-ss-text-muted mb-2">Reportes pendientes</p>
-                <p className={`text-4xl font-bold ${pendingReports > 0 ? "text-amber-500" : "text-green-600"}`}>
-                  {pendingReports}
-                </p>
-                <p className="text-xs text-ss-text-muted mt-3">
-                  {pendingReports > 0 ? "Haz clic para revisarlos →" : "Todo al día ✓"}
-                </p>
-              </Card>
-            </Link>
-          </div>
+          <Card className="p-6 border border-ss-input-border shadow-none">
+            <p className="text-sm font-medium text-ss-text-muted mb-4">Registros por mes (últimos 6 meses)</p>
+            <MonthlyBarChart data={monthlyData} />
+          </Card>
 
           <Card className="p-6 border border-ss-input-border shadow-none">
             <p className="text-sm font-medium text-ss-text-muted mb-4">Feedback por mes (últimos 6 meses)</p>
