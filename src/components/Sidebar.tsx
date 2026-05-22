@@ -46,7 +46,11 @@ export default function Sidebar() {
   const router = useRouter();
   const { dark, toggle } = useTheme();
   const [pendingCount, setPendingCount] = useState(0);
-  const adminEmail = auth.getAdminEmail();
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAdminEmail(auth.getAdminEmail());
+  }, []);
 
   useEffect(() => {
     const token = auth.getToken();
