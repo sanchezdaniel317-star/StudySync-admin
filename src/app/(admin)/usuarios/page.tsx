@@ -13,6 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 import { formatDate } from "@/lib/utils";
+import { TableSkeleton } from "@/components/table-skeleton";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 20;
@@ -114,9 +115,9 @@ export default function UsuariosPage() {
             className="max-w-xs border-ss-input-border" />
         </div>
         {loading ? (
-          <div className="p-8 text-center text-ss-text-muted">Cargando...</div>
+          <div className="p-6"><TableSkeleton rows={10} cols={5} /></div>
         ) : fetchError ? (
-          <div className="p-8 text-center text-sm text-ss-error bg-red-50">{fetchError}</div>
+          <p className="text-sm text-ss-error bg-red-50 rounded-lg px-4 py-3">{fetchError}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

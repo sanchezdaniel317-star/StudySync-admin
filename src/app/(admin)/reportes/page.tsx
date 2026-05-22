@@ -10,6 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/utils";
+import { TableSkeleton } from "@/components/table-skeleton";
 import { toast } from "sonner";
 
 export default function ReportesPage() {
@@ -79,7 +80,7 @@ export default function ReportesPage() {
           <span className="text-xs text-ss-text-muted ml-auto">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-ss-text-muted">Cargando...</div>
+          <div className="p-6"><TableSkeleton rows={8} cols={4} /></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
