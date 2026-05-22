@@ -129,19 +129,22 @@ export default function UsuariosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ss-input-border">
-                {pageItems.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-ss-text-muted">Sin usuarios</td></tr>
-                )}
                 {pageItems.map((u) => (
-                  <tr key={u.email} className="hover:bg-ss-background/50">
+                  <tr key={u.email} className="border-b border-ss-input-border hover:bg-ss-input-border/20 transition-colors">
                     <td className="px-4 py-3 font-medium text-ss-text-dark">{u.name}</td>
                     <td className="px-4 py-3 text-ss-text-muted">{u.email}</td>
                     <td className="px-4 py-3 text-ss-text-muted">{u.carrera || "—"}</td>
                     <td className="px-4 py-3 text-ss-text-muted">{formatDate(u.created_at)}</td>
                     <td className="px-4 py-3">
-                      <Badge className={u.is_blocked ? "bg-red-100 text-ss-error border-0" : "bg-green-100 text-green-700 border-0"}>
-                        {u.is_blocked ? "Bloqueado" : "Activo"}
-                      </Badge>
+                      {u.is_blocked ? (
+                        <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50 font-medium">
+                          Bloqueado
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50 font-medium">
+                          Activo
+                        </Badge>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
@@ -182,6 +185,25 @@ export default function UsuariosPage() {
                     </td>
                   </tr>
                 ))}
+                {pageItems.length === 0 && !loading && (
+                  <tr>
+                    <td colSpan={6} className="py-16 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                          <circle cx="20" cy="20" r="18" fill="#EBF4FF" />
+                          <circle cx="20" cy="20" r="10" fill="#B4C4D9" />
+                          <line x1="27" y1="27" x2="34" y2="34" stroke="#6B7A99" strokeWidth="2.5" strokeLinecap="round" />
+                        </svg>
+                        <p className="text-sm font-medium text-ss-text-dark">No se encontraron usuarios</p>
+                        {search && (
+                          <p className="text-xs text-ss-text-muted">
+                            No hay resultados para &ldquo;{search}&rdquo;
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
