@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api, ApiError, AdminUser, FeedbackItem } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MONTH_NAMES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
@@ -56,6 +57,31 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-6 border border-ss-input-border rounded-xl">
+            <Skeleton className="h-4 w-32 mb-3" />
+            <Skeleton className="h-10 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="p-6 border border-ss-input-border rounded-xl sm:col-span-2">
+          <Skeleton className="h-4 w-48 mb-4" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+        <div className="p-6 border border-ss-input-border rounded-xl">
+          <Skeleton className="h-4 w-32 mb-3" />
+          <Skeleton className="h-10 w-12" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -96,7 +122,7 @@ export default function DashboardPage() {
     <div>
       <h1 className="text-2xl font-bold text-ss-text-dark mb-6">Dashboard</h1>
       {loading ? (
-        <p className="text-ss-text-muted">Cargando...</p>
+        <DashboardSkeleton />
       ) : error ? (
         <p className="text-sm text-ss-error bg-red-50 rounded-lg px-4 py-3">{error}</p>
       ) : (
