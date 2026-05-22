@@ -7,6 +7,12 @@ import { api, ApiError, AdminUser, FeedbackItem } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  BarChart as ReBarChart, Bar,
+  AreaChart as ReAreaChart, Area,
+  XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 const MONTH_NAMES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
@@ -30,6 +36,26 @@ function getMonthlyRegistrations(users: AdminUser[]) {
   });
 }
 
+function getMonthlyFeedback(items: FeedbackItem[]) {
+  const counts: Record<string, number> = {};
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    counts[key] = 0;
+  }
+  items.forEach((item) => {
+    if (!item.created_at) return;
+    const d = new Date(item.created_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (key in counts) counts[key]++;
+  });
+  return Object.entries(counts).map(([key, count]) => {
+    const month = parseInt(key.split("-")[1]) - 1;
+    return { label: MONTH_NAMES[month], value: count };
+  });
+}
+
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <Card className="p-6 border border-ss-input-border shadow-none">
@@ -39,21 +65,65 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   );
 }
 
-function BarChart({ data }: { data: { label: string; value: number }[] }) {
-  const max = Math.max(...data.map((d) => d.value), 1);
+function MonthlyBarChart({ data }: { data: { label: string; value: number }[] }) {
   return (
-    <div className="flex items-end gap-3 h-28 pt-2">
-      {data.map((d) => (
-        <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-[11px] text-ss-text-muted font-medium">{d.value || ""}</span>
-          <div
-            className="w-full bg-ss-primary/70 hover:bg-ss-primary rounded-t transition-all"
-            style={{ height: `${(d.value / max) * 72}px`, minHeight: d.value > 0 ? "6px" : "0" }}
-          />
-          <span className="text-[11px] text-ss-text-muted">{d.label}</span>
-        </div>
-      ))}
-    </div>
+    <ResponsiveContainer width="100%" height={112}>
+      <ReBarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#056CF2" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#3D9DF2" stopOpacity={0.7} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E8EEF4" vertical={false} />
+        <XAxis
+          dataKey="label"
+          tick={{ fontSize: 11, fill: "#6B7A99" }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 11, fill: "#6B7A99" }}
+          axisLine={false}
+          tickLine={false}
+          allowDecimals={false}
+        />
+        <Tooltip
+          contentStyle={{
+            borderRadius: "8px",
+            border: "1px solid #D0D9E8",
+            fontSize: "12px",
+          }}
+          cursor={{ fill: "#056CF2", opacity: 0.06 }}
+        />
+        <Bar
+          dataKey="value"
+          fill="url(#barGradient)"
+          radius={[4, 4, 0, 0]}
+          isAnimationActive
+        />
+      </ReBarChart>
+    </ResponsiveContainer>
+  );
+}
+
+function FeedbackAreaChart({ data }: { data: { label: string; value: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={112}>
+      <ReAreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#056CF2" stopOpacity={0.3} />
+            <stop offset="100%" stopColor="#056CF2" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E8EEF4" vertical={false} />
+        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6B7A99" }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 11, fill: "#6B7A99" }} axisLine={false} tickLine={false} allowDecimals={false} />
+        <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #D0D9E8", fontSize: "12px" }} />
+        <Area type="monotone" dataKey="value" stroke="#056CF2" strokeWidth={2} fill="url(#areaGradient)" isAnimationActive />
+      </ReAreaChart>
+    </ResponsiveContainer>
   );
 }
 
@@ -116,6 +186,7 @@ export default function DashboardPage() {
   }).length;
 
   const monthlyData = getMonthlyRegistrations(users);
+  const feedbackMonthlyData = getMonthlyFeedback(feedback);
   const pendingReports = feedback.filter((f) => f.status === "pendiente").length;
 
   return (
@@ -136,7 +207,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <Card className="p-6 border border-ss-input-border shadow-none sm:col-span-2">
               <p className="text-sm font-medium text-ss-text-muted mb-4">Registros por mes (últimos 6 meses)</p>
-              <BarChart data={monthlyData} />
+              <MonthlyBarChart data={monthlyData} />
             </Card>
 
             <Link href="/reportes" className="block">
@@ -151,6 +222,11 @@ export default function DashboardPage() {
               </Card>
             </Link>
           </div>
+
+          <Card className="p-6 border border-ss-input-border shadow-none">
+            <p className="text-sm font-medium text-ss-text-muted mb-4">Feedback por mes (últimos 6 meses)</p>
+            <FeedbackAreaChart data={feedbackMonthlyData} />
+          </Card>
         </div>
       )}
     </div>
